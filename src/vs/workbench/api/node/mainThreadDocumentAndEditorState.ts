@@ -17,7 +17,11 @@ namespace cmp {
 		return compare(a.uri.toString(), b.uri.toString());
 	}
 	export function compareEditors(a: ApiEditor, b: ApiEditor): number {
-		return a.compareTo(b);
+		let ret = compare(a.editor.getId(), b.editor.getId());
+		if (ret === 0) {
+			ret = compare(a.document.uri.toString(), b.document.uri.toString());
+		}
+		return ret;
 	}
 }
 
@@ -27,14 +31,6 @@ export class ApiEditor {
 		readonly editor: ICommonCodeEditor,
 		readonly document: IModel,
 	) { }
-
-	compareTo(other: ApiEditor): number {
-		let ret = compare(this.editor.getId(), other.editor.getId());
-		if (ret === 0) {
-			ret = compare(this.document.uri.toString(), other.document.uri.toString());
-		}
-		return ret;
-	}
 
 	toString(): string {
 		return `editor=${this.editor.getId()}, doc=${this.document.uri.toString(true)}`;

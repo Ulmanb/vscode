@@ -36,6 +36,7 @@ import { MainThreadFileSystemEventService } from './mainThreadFileSystemEventSer
 import { MainThreadSCM } from './mainThreadSCM';
 
 // --- other interested parties
+import { MainThreadDocumentsAndEditors } from './mainThreadDocumentsAndEditors';
 import { JSONValidationExtensionPoint } from 'vs/platform/jsonschemas/common/jsonValidationExtensionPoint';
 import { LanguageConfigurationFileHandler } from 'vs/editor/node/languageConfigurationExtensionPoint';
 import { SaveParticipant } from './mainThreadSaveParticipant';
@@ -61,6 +62,9 @@ export class ExtHostContribution implements IWorkbenchContribution {
 		const create = <T>(ctor: IConstructorSignature0<T>): T => {
 			return this.instantiationService.createInstance(ctor);
 		};
+
+		this.instantiationService.createInstance(MainThreadDocumentsAndEditors);
+
 
 		// Addressable instances
 		const col = new InstanceCollection();

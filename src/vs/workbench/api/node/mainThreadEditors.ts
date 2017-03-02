@@ -19,7 +19,6 @@ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { equals as arrayEquals } from 'vs/base/common/arrays';
 import { equals as objectEquals } from 'vs/base/common/objects';
 import { ExtHostContext, MainThreadEditorsShape, ExtHostEditorsShape, ITextEditorPositionData } from './extHost.protocol';
-import { MainThreadDocumentAndEditorState } from './mainThreadDocumentAndEditorState';
 
 export class MainThreadEditors extends MainThreadEditorsShape {
 
@@ -63,9 +62,6 @@ export class MainThreadEditors extends MainThreadEditorsShape {
 		this._toDispose.push(this._editorTracker.onChangedFocusedTextEditor((focusedTextEditorId) => this._updateActiveAndVisibleTextEditors()));
 		this._toDispose.push(editorGroupService.onEditorsChanged(() => this._updateActiveAndVisibleTextEditors()));
 		this._toDispose.push(editorGroupService.onEditorsMoved(() => this._updateActiveAndVisibleTextEditors()));
-
-		const state = new MainThreadDocumentAndEditorState(modelService, editorService);
-		state.onDidChangeState(delta => console.log(delta.toString()));
 	}
 
 	public dispose(): void {

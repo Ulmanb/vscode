@@ -320,6 +320,19 @@ export abstract class ExtHostEditorsShape {
 	$acceptTextEditorRemove(id: string): void { throw ni(); }
 }
 
+export interface IDocumentsAndEditorsDelta {
+	removedDocuments?: string[];
+	addedDocuments?: IModelAddedData[];
+	removedEditors?: string[];
+	addedEditors?: ITextEditorAddData[];
+	newActiveEditor?: string;
+}
+
+export abstract class ExtHostDocumentsAndEditors {
+	$acceptDocumentsAndEditorsDelta(delta: IDocumentsAndEditorsDelta): void { throw ni(); }
+}
+
+
 export abstract class ExtHostTreeExplorersShape {
 	$provideRootNode(providerId: string): TPromise<InternalTreeExplorerNodeContent> { throw ni(); };
 	$resolveChildren(providerId: string, node: InternalTreeExplorerNodeContent): TPromise<InternalTreeExplorerNodeContent[]> { throw ni(); }

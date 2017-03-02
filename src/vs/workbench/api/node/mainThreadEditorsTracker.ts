@@ -131,6 +131,10 @@ export class MainThreadTextEditor {
 		return this._model;
 	}
 
+	public getCodeEditor(): EditorCommon.ICommonCodeEditor {
+		return this._codeEditor;
+	}
+
 	public hasCodeEditor(codeEditor: EditorCommon.ICommonCodeEditor): boolean {
 		return (this._codeEditor === codeEditor);
 	}

@@ -11,7 +11,7 @@ import { delta } from 'vs/base/common/arrays';
 import { IDisposable, dispose } from 'vs/base/common/lifecycle';
 import { ICodeEditorService } from 'vs/editor/common/services/codeEditorService';
 import Event, { Emitter, any } from 'vs/base/common/event';
-import { ExtHostContext, ExtHostDocumentsAndEditorsShape, IModelAddedData, ITextEditorAddData } from './extHost.protocol';
+import { ExtHostContext, ExtHostDocumentsAndEditorsShape, IModelAddedData, ITextEditorAddData, IDocumentsAndEditorsDelta } from './extHost.protocol';
 import { MainThreadTextEditor } from 'vs/workbench/api/node/mainThreadEditorsTracker';
 import { IThreadService } from 'vs/workbench/services/thread/common/threadService';
 import { ITextFileService } from 'vs/workbench/services/textfile/common/textfiles';
@@ -161,7 +161,10 @@ class MainThreadDocumentAndEditorStateComputer {
 
 		for (const editor of this._codeEditorService.listCodeEditors()) {
 			const model = editor.getModel();
-			if (model && !model.isTooLargeForHavingARichMode()) {
+			if (model && !model.isTooLargeForHavingARichMode()
+				&& !model.isDisposed() // model disposed
+				&& Boolean(this._modelService.getModel(model.uri)) // model disposing, the flag didn't flip yet but the model service already removed it
+			) {
 				const apiEditor = new EditorAndModel(editor, model);
 				editors.push(apiEditor);
 				if (editor.isFocused()) {
@@ -243,8 +246,8 @@ export class MainThreadDocumentsAndEditors {
 	private _onDelta(delta: DocumentAndEditorStateDelta): void {
 
 		let removedDocuments: string[];
-		let addedEditors: MainThreadTextEditor[] = [];
 		let removedEditors: string[] = [];
+		let addedEditors: MainThreadTextEditor[] = [];
 
 		// removed models
 		removedDocuments = delta.removedDocuments.map(m => m.uri.toString());
@@ -268,19 +271,38 @@ export class MainThreadDocumentsAndEditors {
 			}
 		}
 
-		this._proxy.$acceptDocumentsAndEditorsDelta({
-			newActiveEditor: delta.newActiveEditor,
-			removedDocuments,
-			removedEditors,
-			addedDocuments: delta.addedDocuments.map(m => this._toModelAddData(m)),
-			addedEditors: addedEditors.map(e => this._toTextEditorAddData(e))
-		});
+		let extHostDelta: IDocumentsAndEditorsDelta = Object.create(null);
+		let empty = true;
+		if (delta.newActiveEditor !== undefined) {
+			empty = false;
+			extHostDelta.newActiveEditor = delta.newActiveEditor;
+		}
+		if (removedDocuments.length > 0) {
+			empty = false;
+			extHostDelta.removedDocuments = removedDocuments;
+		}
+		if (removedEditors.length > 0) {
+			empty = false;
+			extHostDelta.removedEditors = removedEditors;
+		}
+		if (delta.addedDocuments.length > 0) {
+			empty = false;
+			extHostDelta.addedDocuments = delta.addedDocuments.map(m => this._toModelAddData(m));
+		}
+		if (delta.addedEditors.length > 0) {
+			empty = false;
+			extHostDelta.addedEditors = addedEditors.map(e => this._toTextEditorAddData(e));
+		}
 
-		// fire individual events
-		this._onTextEditorRemove.fire(removedEditors);
-		this._onTextEditorAdd.fire(addedEditors);
-		this._onDocumentRemove.fire(removedDocuments);
-		this._onDocumentAdd.fire(delta.addedDocuments);
+		if (!empty) {
+			// first update ext host
+			this._proxy.$acceptDocumentsAndEditorsDelta(extHostDelta);
+			// second update dependent state listener
+			this._onTextEditorRemove.fire(removedEditors);
+			this._onTextEditorAdd.fire(addedEditors);
+			this._onDocumentRemove.fire(removedDocuments);
+			this._onDocumentAdd.fire(delta.addedDocuments);
+		}
 	}
 
 	private _toModelAddData(model: IModel): IModelAddedData {

@@ -6,7 +6,6 @@
 
 import { onUnexpectedError } from 'vs/base/common/errors';
 import * as editorCommon from 'vs/editor/common/editorCommon';
-import { RawText } from 'vs/editor/common/model/textModel';
 import { IThreadService } from 'vs/workbench/services/thread/common/threadService';
 import Event, { Emitter } from 'vs/base/common/event';
 import URI from 'vs/base/common/uri';
@@ -18,6 +17,8 @@ import * as vscode from 'vscode';
 import { asWinJsPromise } from 'vs/base/common/async';
 import { MainContext, MainThreadDocumentsShape, ExtHostDocumentsShape, IModelAddedData } from './extHost.protocol';
 import { ExtHostDocumentData, setWordDefinitionFor } from './extHostDocumentData';
+import { TextSource } from 'vs/editor/common/model/textSource';
+
 
 export class ExtHostDocuments extends ExtHostDocumentsShape {
 
@@ -124,17 +125,11 @@ export class ExtHostDocuments extends ExtHostDocumentsShape {
 						}
 
 						// create lines and compare
-						const raw = RawText.fromString(value, {
-							defaultEOL: editorCommon.DefaultEndOfLine.CRLF,
-							tabSize: 0,
-							detectIndentation: false,
-							insertSpaces: false,
-							trimAutoWhitespace: false
-						});
+						const textSource = TextSource.fromString(value, editorCommon.DefaultEndOfLine.CRLF);
 
 						// broadcast event when content changed
-						if (!document.equalLines(raw)) {
-							return this._proxy.$onVirtualDocumentChange(<URI>uri, raw);
+						if (!document.equalLines(textSource)) {
+							return this._proxy.$onVirtualDocumentChange(<URI>uri, textSource);
 						}
 
 					}, onUnexpectedError);
@@ -161,7 +156,7 @@ export class ExtHostDocuments extends ExtHostDocumentsShape {
 	}
 
 	public $acceptModelAdd(initData: IModelAddedData): void {
-		let data = new ExtHostDocumentData(this._proxy, initData.url, initData.value.lines, initData.value.EOL, initData.modeId, initData.versionId, initData.isDirty);
+		let data = new ExtHostDocumentData(this._proxy, initData.url, initData.lines, initData.EOL, initData.modeId, initData.versionId, initData.isDirty);
 		let key = data.document.uri.toString();
 		if (this._documentData.has(key)) {
 			throw new Error('Document `' + key + '` already exists.');

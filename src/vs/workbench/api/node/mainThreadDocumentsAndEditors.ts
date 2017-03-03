@@ -11,8 +11,8 @@ import { delta } from 'vs/base/common/arrays';
 import { IDisposable, dispose } from 'vs/base/common/lifecycle';
 import { ICodeEditorService } from 'vs/editor/common/services/codeEditorService';
 import Event, { Emitter, any } from 'vs/base/common/event';
-import { ExtHostDocumentsAndEditors, IModelAddedData, ITextEditorAddData } from './extHost.protocol';
-import { MainThreadTextEditor, IFocusTracker } from 'vs/workbench/api/node/mainThreadEditorsTracker';
+import { ExtHostContext, ExtHostDocumentsAndEditorsShape, IModelAddedData, ITextEditorAddData } from './extHost.protocol';
+import { MainThreadTextEditor } from 'vs/workbench/api/node/mainThreadEditorsTracker';
 import { IThreadService } from 'vs/workbench/services/thread/common/threadService';
 import { ITextFileService } from 'vs/workbench/services/textfile/common/textfiles';
 import { IWorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
@@ -101,7 +101,7 @@ class DocumentAndEditorState {
 	}
 }
 
-class MainThreadDocumentAndEditorState {
+class MainThreadDocumentAndEditorStateComputer {
 
 	private _toDispose: IDisposable[] = [];
 	private _toDisposeOnEditorRemove = new Map<string, IDisposable>();
@@ -206,9 +206,9 @@ class MainThreadDocumentAndEditorState {
 
 export class MainThreadDocumentsAndEditors {
 
-	private _focusTracker: IFocusTracker;
-	private _proxy: ExtHostDocumentsAndEditors;
-	private _state: MainThreadDocumentAndEditorState;
+	private _toDispose: IDisposable[];
+	private _proxy: ExtHostDocumentsAndEditorsShape;
+	private _stateComputer: MainThreadDocumentAndEditorStateComputer;
 	private _editors = <{ [id: string]: MainThreadTextEditor }>Object.create(null);
 
 	private _onTextEditorAdd = new Emitter<MainThreadTextEditor[]>();
@@ -228,15 +228,16 @@ export class MainThreadDocumentsAndEditors {
 		@IThreadService threadService: IThreadService,
 		@ICodeEditorService codeEditorService: ICodeEditorService,
 	) {
-		this._focusTracker = { onGainedFocus() { }, onLostFocus() { } };
-		// this._proxy = threadService.get<ExtHostDocumentsAndEditors>(null);
-		this._proxy = new class extends ExtHostDocumentsAndEditors {
-			$acceptDocumentsAndEditorsDelta(data) {
+		this._proxy = threadService.get(ExtHostContext.ExtHostDocumentsAndEditors);
+		this._stateComputer = new MainThreadDocumentAndEditorStateComputer(_modelService, codeEditorService, _workbenchEditorService);
+		this._toDispose = [
+			this._stateComputer,
+			this._stateComputer.onDidChangeState(this._onDelta, this)
+		];
+	}
 
-			}
-		};
-		this._state = new MainThreadDocumentAndEditorState(_modelService, codeEditorService, _workbenchEditorService);
-		this._state.onDidChangeState(this._onDelta, this);
+	dispose(): void {
+		this._toDispose = dispose(this._toDispose);
 	}
 
 	private _onDelta(delta: DocumentAndEditorStateDelta): void {
@@ -251,7 +252,7 @@ export class MainThreadDocumentsAndEditors {
 		// added editors
 		for (const apiEditor of delta.addedEditors) {
 			const mainThreadEditor = new MainThreadTextEditor(apiEditor.id, apiEditor.document,
-				apiEditor.editor, this._focusTracker, this._modelService);
+				apiEditor.editor, { onGainedFocus() { }, onLostFocus() { } }, this._modelService);
 
 			this._editors[apiEditor.id] = mainThreadEditor;
 			addedEditors.push(mainThreadEditor);

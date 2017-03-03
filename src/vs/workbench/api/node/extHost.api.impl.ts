@@ -29,7 +29,7 @@ import { ExtHostCommands } from 'vs/workbench/api/node/extHostCommands';
 import { ExtHostOutputService } from 'vs/workbench/api/node/extHostOutputService';
 import { ExtHostTerminalService } from 'vs/workbench/api/node/extHostTerminalService';
 import { ExtHostMessageService } from 'vs/workbench/api/node/extHostMessageService';
-import { ExtHostEditors } from 'vs/workbench/api/node/extHostEditors';
+import { ExtHostEditors } from 'vs/workbench/api/node/extHostTextEditors';
 import { ExtHostLanguages } from 'vs/workbench/api/node/extHostLanguages';
 import { ExtHostLanguageFeatures } from 'vs/workbench/api/node/extHostLanguageFeatures';
 import { ExtHostApiCommands } from 'vs/workbench/api/node/extHostApiCommands';

@@ -34,7 +34,7 @@ export class ExceptionWidget extends ZoneWidget {
 		this.container.style.lineHeight = `${fontInfo.lineHeight}px`;
 
 		let title = $('.title');
-		title.textContent = nls.localize('exceptionThrown', 'Exception occurred');
+		title.textContent = nls.localize('exceptionThrown', 'Exception occured');
 		dom.append(container, title);
 
 		const thread = this.debugService.getViewModel().focusedThread;

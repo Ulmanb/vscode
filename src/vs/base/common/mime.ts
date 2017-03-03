@@ -202,8 +202,9 @@ function guessMimeTypeByFirstline(firstLine: string): string {
 				continue;
 			}
 
+			// Make sure the entire line matches, not just a subpart.
 			let matches = firstLine.match(association.firstline);
-			if (matches && matches.length > 0) {
+			if (matches && matches.length > 0 && matches[0].length === firstLine.length) {
 				return association.mime;
 			}
 		}

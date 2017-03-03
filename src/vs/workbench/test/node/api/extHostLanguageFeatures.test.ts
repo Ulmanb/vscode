@@ -87,8 +87,20 @@ suite('ExtHostLanguageFeatures', function () {
 			versionId: model.getVersionId(),
 			modeId: model.getLanguageIdentifier().language,
 			url: model.uri,
-			lines: model.getValue().split(model.getEOL()),
-			EOL: model.getEOL(),
+			value: {
+				EOL: model.getEOL(),
+				lines: model.getValue().split(model.getEOL()),
+				BOM: '',
+				length: -1,
+				containsRTL: false,
+				isBasicASCII: false,
+				options: {
+					tabSize: 4,
+					insertSpaces: true,
+					trimAutoWhitespace: true,
+					defaultEOL: EditorCommon.DefaultEndOfLine.LF
+				}
+			},
 		});
 
 		const heapService = new ExtHostHeapService();

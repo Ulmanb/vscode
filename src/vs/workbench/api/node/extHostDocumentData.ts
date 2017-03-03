@@ -5,9 +5,9 @@
 'use strict';
 
 import { regExpLeadsToEndlessLoop } from 'vs/base/common/strings';
+import * as editorCommon from 'vs/editor/common/editorCommon';
 import { MirrorModel2 } from 'vs/editor/common/model/mirrorModel2';
 import URI from 'vs/base/common/uri';
-import { ITextSource } from 'vs/editor/common/model/textSource';
 import { Range, Position } from 'vs/workbench/api/node/extHostTypes';
 import * as vscode from 'vscode';
 import { getWordAtText, ensureValidWordDefinition } from 'vs/editor/common/model/wordHelper';
@@ -46,7 +46,7 @@ export class ExtHostDocumentData extends MirrorModel2 {
 		super.dispose();
 	}
 
-	equalLines({ lines }: ITextSource): boolean {
+	equalLines({ lines }: editorCommon.IRawText): boolean {
 		const len = lines.length;
 		if (len !== this._lines.length) {
 			return false;

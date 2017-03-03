@@ -309,8 +309,7 @@ export class MainThreadDocumentsAndEditors {
 		return {
 			url: model.uri,
 			versionId: model.getVersionId(),
-			lines: model.getLinesContent(),
-			EOL: model.getEOL(),
+			value: model.toRawText(),
 			modeId: model.getLanguageIdentifier().language,
 			isDirty: this._textFileService.isDirty(model.uri)
 		};

@@ -100,7 +100,6 @@ class ConfigClass implements IConfiguration {
 			suggestFontSize: 0,
 			suggestLineHeight: 0,
 			selectionHighlight: true,
-			occurrencesHighlight: true,
 			codeLens: true,
 			referenceInfos: true,
 			folding: true,

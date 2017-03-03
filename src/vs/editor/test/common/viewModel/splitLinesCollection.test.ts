@@ -352,7 +352,7 @@ suite('SplitLinesCollection', () => {
 		languageRegistration = modes.TokenizationRegistry.register(LANGUAGE_ID, tokenizationSupport);
 		model = Model.createFromString(_text.join('\n'), undefined, new modes.LanguageIdentifier(LANGUAGE_ID, 0));
 		// force tokenization
-		model.forceTokenization(model.getLineCount());
+		model.getLineTokens(model.getLineCount(), false);
 	});
 
 	teardown(() => {
@@ -777,7 +777,7 @@ function createLineMapping(breakingLengths: number[], wrappedLinesPrefix: string
 
 function createModel(text: string): IModel {
 	return {
-		getLineTokens: (lineNumber: number) => {
+		getLineTokens: (lineNumber: number, inaccurateTokensAcceptable?: boolean) => {
 			return null;
 		},
 		getLineContent: (lineNumber: number) => {

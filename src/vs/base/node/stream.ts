@@ -30,7 +30,7 @@ export function readExactlyByStream(stream: stream.Readable, totalBytes: number)
 			bytesRead += bytesToRead;
 
 			if (bytesRead === totalBytes) {
-				(stream as any).destroy(); // Will trigger the close event eventually
+				stream.destroy(); // Will trigger the close event eventually
 			}
 		});
 

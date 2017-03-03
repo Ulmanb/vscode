@@ -14,8 +14,6 @@ import { Selection } from 'vs/editor/common/core/selection';
 import { Position } from 'vs/editor/common/core/position';
 import { IDisposable } from 'vs/base/common/lifecycle';
 import { LanguageIdentifier } from 'vs/editor/common/modes';
-import { ITextSource, IRawTextSource, RawTextSource } from 'vs/editor/common/model/textSource';
-import { TextModel } from 'vs/editor/common/model/textModel';
 
 export interface IValidatedEditOperation {
 	sortIndex: number;
@@ -32,10 +30,6 @@ interface IIdentifiedLineEdit extends ILineEdit {
 }
 
 export class EditableTextModel extends TextModelWithDecorations implements editorCommon.IEditableTextModel {
-
-	public static createFromString(text: string, options: editorCommon.ITextModelCreationOptions = TextModel.DEFAULT_CREATION_OPTIONS, languageIdentifier: LanguageIdentifier = null): EditableTextModel {
-		return new EditableTextModel([], RawTextSource.fromString(text), options, languageIdentifier);
-	}
 
 	public onDidChangeRawContent(listener: (e: editorCommon.IModelContentChangedEvent) => void): IDisposable {
 		return this.addListener2(editorCommon.EventType.ModelRawContentChanged, listener);
@@ -56,9 +50,9 @@ export class EditableTextModel extends TextModelWithDecorations implements edito
 
 	private _trimAutoWhitespaceLines: number[];
 
-	constructor(allowedEventTypes: string[], rawTextSource: IRawTextSource, creationOptions: editorCommon.ITextModelCreationOptions, languageIdentifier: LanguageIdentifier) {
+	constructor(allowedEventTypes: string[], rawText: editorCommon.IRawText, languageIdentifier: LanguageIdentifier) {
 		allowedEventTypes.push(editorCommon.EventType.ModelRawContentChanged);
-		super(allowedEventTypes, rawTextSource, creationOptions, languageIdentifier);
+		super(allowedEventTypes, rawText, languageIdentifier);
 
 		this._commandManager = new EditStack(this);
 
@@ -75,7 +69,7 @@ export class EditableTextModel extends TextModelWithDecorations implements edito
 		super.dispose();
 	}
 
-	protected _resetValue(newValue: ITextSource): void {
+	protected _resetValue(newValue: editorCommon.ITextSource): void {
 		super._resetValue(newValue);
 
 		// Destroy my edit history and settings

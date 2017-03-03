@@ -8,6 +8,7 @@ import { toErrorMessage } from 'vs/base/common/errorMessage';
 import { EmitterEvent } from 'vs/base/common/eventEmitter';
 import { IModelService } from 'vs/editor/common/services/modelService';
 import * as editorCommon from 'vs/editor/common/editorCommon';
+import { RawText } from 'vs/editor/common/model/textModel';
 import { IThreadService } from 'vs/workbench/services/thread/common/threadService';
 import URI from 'vs/base/common/uri';
 import { IDisposable, dispose } from 'vs/base/common/lifecycle';
@@ -19,7 +20,6 @@ import { IUntitledEditorService } from 'vs/workbench/services/untitled/common/un
 import { ExtHostContext, MainThreadDocumentsShape, ExtHostDocumentsShape } from './extHost.protocol';
 import { ITextModelResolverService } from 'vs/editor/common/services/resolverService';
 import { ICodeEditorService } from 'vs/editor/common/services/codeEditorService';
-import { ITextSource } from 'vs/editor/common/model/textSource';
 
 export class MainThreadDocuments extends MainThreadDocumentsShape {
 	private _modelService: IModelService;
@@ -106,15 +106,14 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		this._proxy.$acceptModelAdd({
 			url: model.uri,
 			versionId: model.getVersionId(),
-			lines: model.getLinesContent(),
-			EOL: model.getEOL(),
+			value: model.toRawText(),
 			modeId: model.getLanguageIdentifier().language,
 			isDirty: this._textFileService.isDirty(modelUrl)
 		});
 	}
 
 	private _onModelModeChanged(event: { model: editorCommon.IModel; oldModeId: string; }): void {
-		let { model, oldModeId } = event;
+		let {model, oldModeId} = event;
 		let modelUrl = model.uri;
 		if (!this._modelIsSynced[modelUrl.toString()]) {
 			return;
@@ -241,12 +240,16 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		}
 	}
 
-	$onVirtualDocumentChange(uri: URI, value: ITextSource): void {
+	$onVirtualDocumentChange(uri: URI, value: editorCommon.IRawText): void {
 		const model = this._modelService.getModel(uri);
 		if (!model) {
 			return;
 		}
-		const raw: ITextSource = {
+		// fetch the raw text from the ext host but
+		// reuse the current options
+		const {options} = RawText.fromStringWithModelOptions('', model);
+		const raw = <editorCommon.IRawText>{
+			options,
 			lines: value.lines,
 			length: value.length,
 			BOM: value.BOM,
@@ -256,7 +259,7 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		};
 
 		if (!model.equals(raw)) {
-			model.setValueFromTextSource(raw);
+			model.setValueFromRawText(raw);
 		}
 	}
 }

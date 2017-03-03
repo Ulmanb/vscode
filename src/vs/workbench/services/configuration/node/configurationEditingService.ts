@@ -245,13 +245,7 @@ export class ConfigurationEditingService implements IConfigurationEditingService
 
 	private resolveContent(resource: URI, options: IConfigurationEditingOptions): TPromise<string> {
 		if (options.writeToBuffer) {
-			return this.textModelResolverService.createModelReference(resource).then(reference => {
-				const value = reference.object.textEditorModel.getValue();
-
-				reference.dispose();
-
-				return value;
-			});
+			return this.textModelResolverService.createModelReference(resource).then(reference => reference.object.textEditorModel.getValue());
 		}
 		return this.fileService.resolveContent(resource, { acceptTextOnly: true, encoding: encoding.UTF8 }).then(content => content.value);
 	}

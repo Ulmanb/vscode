@@ -21,8 +21,15 @@ suite('EditorSimpleWorker', () => {
 			this.acceptNewModel({
 				url: uri,
 				versionId: 1,
-				lines: lines,
-				EOL: eol
+				value: {
+					EOL: eol,
+					lines,
+					BOM: undefined,
+					containsRTL: undefined,
+					isBasicASCII: undefined,
+					length: undefined,
+					options: undefined
+				}
 			});
 			return this._getModel(uri);
 		}

@@ -12,6 +12,7 @@ import { TextDocumentSaveReason, TextEdit, Position } from 'vs/workbench/api/nod
 import { MainThreadWorkspaceShape } from 'vs/workbench/api/node/extHost.protocol';
 import { ExtHostDocumentSaveParticipant } from 'vs/workbench/api/node/extHostDocumentSaveParticipant';
 import { OneGetThreadService } from './testThreadService';
+import * as EditorCommon from 'vs/editor/common/editorCommon';
 import { IResourceEdit } from 'vs/editor/common/services/bulkEdit';
 import { SaveReason } from 'vs/workbench/services/textfile/common/textfiles';
 import * as vscode from 'vscode';
@@ -30,8 +31,20 @@ suite('ExtHostDocumentSaveParticipant', () => {
 			modeId: 'foo',
 			url: resource,
 			versionId: 1,
-			lines: ['foo'],
-			EOL: '\n',
+			value: {
+				EOL: '\n',
+				lines: ['foo'],
+				BOM: '',
+				length: -1,
+				containsRTL: false,
+				isBasicASCII: false,
+				options: {
+					tabSize: 4,
+					insertSpaces: true,
+					trimAutoWhitespace: true,
+					defaultEOL: EditorCommon.DefaultEndOfLine.LF
+				}
+			}
 		});
 	});
 

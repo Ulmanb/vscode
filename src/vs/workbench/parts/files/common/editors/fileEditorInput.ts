@@ -18,8 +18,6 @@ import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { IDisposable, dispose } from 'vs/base/common/lifecycle';
 import { telemetryURIDescriptor } from 'vs/platform/telemetry/common/telemetryUtils';
-import { Verbosity } from 'vs/platform/editor/common/editor';
-import { IEnvironmentService } from 'vs/platform/environment/common/environment';
 
 /**
  * A file editor input is the input type for the file editor of file system resources.
@@ -31,10 +29,7 @@ export class FileEditorInput extends EditorInput implements IFileEditorInput {
 
 	private name: string;
 	private description: string;
-
-	private shortTitle: string;
-	private mediumTitle: string;
-	private longTitle: string;
+	private verboseDescription: string;
 
 	private toUnbind: IDisposable[];
 
@@ -46,8 +41,7 @@ export class FileEditorInput extends EditorInput implements IFileEditorInput {
 		preferredEncoding: string,
 		@IInstantiationService private instantiationService: IInstantiationService,
 		@IWorkspaceContextService private contextService: IWorkspaceContextService,
-		@ITextFileService private textFileService: ITextFileService,
-		@IEnvironmentService private environmentService: IEnvironmentService
+		@ITextFileService private textFileService: ITextFileService
 	) {
 		super();
 
@@ -82,9 +76,7 @@ export class FileEditorInput extends EditorInput implements IFileEditorInput {
 		// Reset resource dependent properties
 		this.name = null;
 		this.description = null;
-		this.shortTitle = null;
-		this.mediumTitle = null;
-		this.longTitle = null;
+		this.verboseDescription = null;
 	}
 
 	public getResource(): URI {
@@ -133,23 +125,20 @@ export class FileEditorInput extends EditorInput implements IFileEditorInput {
 		return this.name;
 	}
 
-	public getDescription(): string {
-		if (!this.description) {
-			this.description = labels.getPathLabel(paths.dirname(this.resource.fsPath), this.contextService);
+	public getDescription(verbose?: boolean): string {
+		if (!verbose) {
+			if (!this.description) {
+				this.description = labels.getPathLabel(paths.dirname(this.resource.fsPath), this.contextService);
+			}
+
+			return this.description;
 		}
 
-		return this.description;
-	}
-
-	public getTitle(verbosity: Verbosity): string {
-		switch (verbosity) {
-			case Verbosity.SHORT:
-				return this.shortTitle ? this.shortTitle : (this.shortTitle = this.getName());
-			case Verbosity.MEDIUM:
-				return this.mediumTitle ? this.mediumTitle : (this.mediumTitle = labels.getPathLabel(this.resource, this.contextService));
-			case Verbosity.LONG:
-				return this.longTitle ? this.longTitle : (this.longTitle = labels.tildify(labels.getPathLabel(this.resource), this.environmentService.userHome));
+		if (!this.verboseDescription) {
+			this.verboseDescription = labels.getPathLabel(this.resource.fsPath);
 		}
+
+		return this.verboseDescription;
 	}
 
 	public isDirty(): boolean {

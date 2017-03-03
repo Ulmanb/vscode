@@ -9,7 +9,6 @@ import nls = require('vs/nls');
 import { readFile } from 'vs/base/node/pfs';
 import * as semver from 'semver';
 import * as path from 'path';
-import { isUUID } from 'vs/base/common/uuid';
 import Event, { Emitter, chain } from 'vs/base/common/event';
 import { index } from 'vs/base/common/arrays';
 import { LinkedMap as Map } from 'vs/base/common/map';
@@ -67,6 +66,10 @@ class Extension implements IExtension {
 		}
 
 		return this.local.manifest.displayName || this.local.manifest.name;
+	}
+
+	get identifier(): string {
+		return `${this.publisher}.${this.name}`;
 	}
 
 	get id(): string {
@@ -357,8 +360,8 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 			this.installed = result.map(local => {
 				const extension = installedById[local.id] || new Extension(this.galleryService, this.stateProvider, local);
 				extension.local = local;
-				extension.disabledGlobally = globallyDisabledExtensions.indexOf(extension.id) !== -1;
-				extension.disabledForWorkspace = workspaceDisabledExtensions.indexOf(extension.id) !== -1;
+				extension.disabledGlobally = globallyDisabledExtensions.indexOf(extension.identifier) !== -1;
+				extension.disabledForWorkspace = workspaceDisabledExtensions.indexOf(extension.identifier) !== -1;
 				return extension;
 			});
 
@@ -390,9 +393,9 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 			.then(extensions => {
 				const map = new Map<string, IExtension>();
 				for (const extension of extensions) {
-					map.set(extension.id, extension);
+					map.set(extension.identifier, extension);
 				}
-				return new ExtensionDependencies(extension, extension.id, map);
+				return new ExtensionDependencies(extension, extension.identifier, map);
 			});
 	}
 
@@ -401,7 +404,8 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 	}
 
 	private fromGallery(gallery: IGalleryExtension): Extension {
-		const installed = this.installed.filter(installed => installed.id === gallery.id)[0];
+		const installedByGalleryId = index(this.installed, e => e.id);
+		const installed = installedByGalleryId[gallery.id];
 
 		if (installed) {
 			// Loading the compatible version only there is an engine property
@@ -438,19 +442,13 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 	private syncWithGallery(): TPromise<void> {
 		const names = this.installed
 			.filter(e => e.type === LocalExtensionType.User)
-			.map(e => e.id);
+			.map(e => e.identifier);
 
 		if (names.length === 0) {
 			return TPromise.as(null);
 		}
 
-		// Workaround untill market place fixes the query by names with case insensitve ids.
-		let ids = this.installed
-			.filter(e => e.type === LocalExtensionType.User && !!e.local && !!e.local.metadata && !!e.local.metadata.id && isUUID(e.local.metadata.id))
-			.map(e => e.local.metadata.id);
-		ids = ids.length ? ids : void 0;
-
-		return this.queryGallery({ names, ids, pageSize: names.length }) as TPromise<any>;
+		return this.queryGallery({ names, pageSize: names.length }) as TPromise<any>;
 	}
 
 	private eventuallyAutoUpdateExtensions(): void {
@@ -591,7 +589,7 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 			if (!enable && (workspace ? i.disabledForWorkspace : i.disabledGlobally)) {
 				return false;
 			}
-			return i.type === LocalExtensionType.User && extension.dependencies.indexOf(i.id) !== -1;
+			return i.type === LocalExtensionType.User && extension.dependencies.indexOf(i.identifier) !== -1;
 		});
 		const depsOfDeps = [];
 		for (const dep of dependenciesToDisable) {
@@ -616,10 +614,10 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 				return false;
 			}
 			return i.dependencies.some(dep => {
-				if (extension.id === dep) {
+				if (extension.identifier === dep) {
 					return true;
 				}
-				return dependencies.some(d => d.id === dep);
+				return dependencies.some(d => d.identifier === dep);
 			});
 		});
 	}
@@ -638,12 +636,12 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 
 	private doSetEnablement(extension: IExtension, enable: boolean, workspace: boolean): TPromise<boolean> {
 		if (workspace) {
-			return this.extensionEnablementService.setEnablement(extension.id, enable, workspace);
+			return this.extensionEnablementService.setEnablement(extension.identifier, enable, workspace);
 		}
 
-		const globalElablement = this.extensionEnablementService.setEnablement(extension.id, enable, false);
+		const globalElablement = this.extensionEnablementService.setEnablement(extension.identifier, enable, false);
 		if (enable && this.workspaceContextService.hasWorkspace()) {
-			const workspaceEnablement = this.extensionEnablementService.setEnablement(extension.id, enable, true);
+			const workspaceEnablement = this.extensionEnablementService.setEnablement(extension.identifier, enable, true);
 			return TPromise.join([globalElablement, workspaceEnablement]).then(values => values[0] || values[1]);
 		}
 		return globalElablement;
@@ -734,12 +732,12 @@ export class ExtensionsWorkbenchService implements IExtensionsWorkbenchService {
 	}
 
 	private onEnablementChanged(extensionIdentifier: string) {
-		const [extension] = this.local.filter(e => e.id === extensionIdentifier);
+		const [extension] = this.local.filter(e => e.identifier === extensionIdentifier);
 		if (extension) {
 			const globallyDisabledExtensions = this.extensionEnablementService.getGloballyDisabledExtensions();
 			const workspaceDisabledExtensions = this.extensionEnablementService.getWorkspaceDisabledExtensions();
-			extension.disabledGlobally = globallyDisabledExtensions.indexOf(extension.id) !== -1;
-			extension.disabledForWorkspace = workspaceDisabledExtensions.indexOf(extension.id) !== -1;
+			extension.disabledGlobally = globallyDisabledExtensions.indexOf(extension.identifier) !== -1;
+			extension.disabledForWorkspace = workspaceDisabledExtensions.indexOf(extension.identifier) !== -1;
 			this._onChange.fire();
 		}
 	}

@@ -9,7 +9,7 @@ import { EditOperation } from 'vs/editor/common/core/editOperation';
 import { Position } from 'vs/editor/common/core/position';
 import { Range } from 'vs/editor/common/core/range';
 import {
-	EventType, IModelContentChangedEvent, IModelContentChangedLineChangedEvent,
+	EventType, IModelContentChangedEvent, IModelContentChangedFlushEvent, IModelContentChangedLineChangedEvent,
 	IModelContentChangedLinesDeletedEvent, IModelContentChangedLinesInsertedEvent
 } from 'vs/editor/common/editorCommon';
 import { Model } from 'vs/editor/common/model/model';
@@ -312,6 +312,8 @@ suite('Editor Model - Model', () => {
 			listenerCalls++;
 
 			assert.equal(e.changeType, EventType.ModelRawContentChangedFlush);
+
+			assert.deepEqual((<IModelContentChangedFlushEvent>e).detail.lines, ['new value']);
 		});
 		thisModel.setValue('new value');
 		assert.equal(listenerCalls, 1, 'listener calls');

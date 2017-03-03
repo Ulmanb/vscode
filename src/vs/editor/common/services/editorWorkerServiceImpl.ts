@@ -217,8 +217,7 @@ class EditorModelManager extends Disposable {
 
 		this._proxy.acceptNewModel({
 			url: model.uri.toString(),
-			lines: model.getLinesContent(),
-			EOL: model.getEOL(),
+			value: model.toRawText(),
 			versionId: model.getVersionId()
 		});
 

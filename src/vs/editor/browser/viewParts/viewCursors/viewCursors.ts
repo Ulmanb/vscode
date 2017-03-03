@@ -149,7 +149,7 @@ export class ViewCursors extends ViewPart {
 		this._updateBlinking();
 		return false;
 	}
-	public onLinesChanged(e: viewEvents.ViewLinesChangedEvent): boolean {
+	public onLineChanged(e: viewEvents.ViewLineChangedEvent): boolean {
 		return true;
 	}
 	public onLinesDeleted(e: viewEvents.ViewLinesDeletedEvent): boolean {

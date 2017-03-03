@@ -277,7 +277,6 @@ export class FoldingController implements IFoldingController {
 				iconClicked = true;
 				break;
 			case editorCommon.MouseTargetType.CONTENT_EMPTY:
-			case editorCommon.MouseTargetType.CONTENT_TEXT:
 				if (range.isEmpty && range.startColumn === model.getLineMaxColumn(range.startLineNumber)) {
 					break;
 				}

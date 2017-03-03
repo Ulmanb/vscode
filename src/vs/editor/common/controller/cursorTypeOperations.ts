@@ -344,8 +344,7 @@ export class TypeOperations {
 			}
 		}
 
-		model.forceTokenization(position.lineNumber);
-		let lineTokens = model.getLineTokens(position.lineNumber);
+		let lineTokens = model.getLineTokens(position.lineNumber, false);
 
 		let shouldAutoClosePair = false;
 		try {
@@ -414,8 +413,7 @@ export class TypeOperations {
 		}
 
 		let position = cursor.position;
-		model.forceTokenization(position.lineNumber);
-		let lineTokens = model.getLineTokens(position.lineNumber);
+		let lineTokens = model.getLineTokens(position.lineNumber, false);
 
 		let electricAction: IElectricAction;
 		try {

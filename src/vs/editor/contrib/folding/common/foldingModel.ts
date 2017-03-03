@@ -72,7 +72,7 @@ export class CollapsibleRegion {
 		if (this._isCollapsed) {
 			return {
 				stickiness: editorCommon.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-				afterContentClassName: 'inline-folded',
+				inlineClassName: 'inline-folded',
 				linesDecorationsClassName: 'folding collapsed'
 			};
 		} else {

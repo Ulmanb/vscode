@@ -18,7 +18,6 @@ import { TextModelWithTokens } from 'vs/editor/common/model/textModelWithTokens'
 import { LanguageConfigurationRegistry } from 'vs/editor/common/modes/languageConfigurationRegistry';
 import { NULL_STATE } from 'vs/editor/common/modes/nullMode';
 import { TokenizationResult2 } from 'vs/editor/common/core/token';
-import { RawTextSource } from 'vs/editor/common/model/textSource';
 
 suite('TextModelWithTokens', () => {
 
@@ -78,8 +77,7 @@ suite('TextModelWithTokens', () => {
 
 		let model = new TextModelWithTokens(
 			[],
-			RawTextSource.fromString(contents.join('\n')),
-			TextModel.DEFAULT_CREATION_OPTIONS,
+			TextModel.toRawText(contents.join('\n'), TextModel.DEFAULT_CREATION_OPTIONS),
 			languageIdentifier
 		);
 
@@ -266,10 +264,7 @@ suite('TextModelWithTokens regression tests', () => {
 
 	test('Microsoft/monaco-editor#122: Unhandled Exception: TypeError: Unable to get property \'replace\' of undefined or null reference', () => {
 		function assertViewLineTokens(model: Model, lineNumber: number, forceTokenization: boolean, expected: ViewLineToken[]): void {
-			if (forceTokenization) {
-				model.forceTokenization(lineNumber);
-			}
-			let actual = model.getLineTokens(lineNumber).inflate();
+			let actual = model.getLineTokens(lineNumber, !forceTokenization).inflate();
 			let decode = (token: ViewLineToken) => {
 				return {
 					endIndex: token.endIndex,

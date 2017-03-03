@@ -27,7 +27,8 @@ function testCommand(lines: string[], selections: Selection[], edits: IIdentifie
 
 	model.applyEdits(edits);
 
-	assert.deepEqual(model.getLinesContent(), expectedLines);
+	let actualValue = model.toRawText().lines;
+	assert.deepEqual(actualValue, expectedLines);
 
 	let actualSelections = cursor.getSelections();
 	assert.deepEqual(actualSelections.map(s => s.toString()), expectedSelections.map(s => s.toString()));

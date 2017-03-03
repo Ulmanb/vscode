@@ -456,9 +456,6 @@ export class DefaultPreferencesEditor extends BaseTextEditor {
 			options.renderIndentGuides = false;
 			options.rulers = [];
 			options.glyphMargin = true;
-			options.minimap = {
-				enabled: false
-			};
 		}
 		return options;
 	}
@@ -468,7 +465,7 @@ export class DefaultPreferencesEditor extends BaseTextEditor {
 			.then(() => this.input.resolve()
 				.then(editorModel => TPromise.join<any>([
 					editorModel.load(),
-					this.preferencesService.createPreferencesEditorModel(editablePreferencesUri)
+					this.preferencesService.resolvePreferencesEditorModel(editablePreferencesUri)
 				]))
 				.then(([editorModel, preferencesModel]) => (<DefaultPreferencesCodeEditor>this.getControl()).setModels((<ResourceEditorModel>editorModel).textEditorModel, <SettingsEditorModel>preferencesModel)));
 	}
@@ -478,7 +475,7 @@ export class DefaultPreferencesEditor extends BaseTextEditor {
 	}
 
 	public clearInput(): void {
-		(<DefaultPreferencesCodeEditor>this.getControl()).clearModels();
+		this.getControl().setModel(null);
 		super.clearInput();
 	}
 
@@ -506,14 +503,6 @@ class DefaultPreferencesCodeEditor extends CodeEditor {
 		if (renderer) {
 			renderer.associatedPreferencesModel = this.settingsModel;
 		}
-	}
-
-	clearModels(): void {
-		if (this.settingsModel) {
-			this.settingsModel.dispose();
-			this.settingsModel = null;
-		}
-		super.setModel(null);
 	}
 }
 
@@ -568,7 +557,7 @@ export class DefaultSettingsEditorContribution extends PreferencesEditorContribu
 	static ID: string = 'editor.contrib.defaultsettings';
 
 	protected createPreferencesRenderer(): TPromise<IPreferencesRenderer<ISetting>> {
-		return this.preferencesService.createPreferencesEditorModel(this.editor.getModel().uri)
+		return this.preferencesService.resolvePreferencesEditorModel(this.editor.getModel().uri)
 			.then(editorModel => {
 				if (editorModel instanceof DefaultSettingsEditorModel) {
 					return this.instantiationService.createInstance(DefaultSettingsRenderer, this.editor, editorModel, (<DefaultPreferencesCodeEditor>this.editor).settingsModel);
@@ -592,7 +581,7 @@ export class SettingsEditorContribution extends PreferencesEditorContribution<IS
 	}
 
 	protected createPreferencesRenderer(): TPromise<IPreferencesRenderer<ISetting>> {
-		return TPromise.join<any>([this.preferencesService.createPreferencesEditorModel(this.preferencesService.defaultSettingsResource), this.preferencesService.createPreferencesEditorModel(this.editor.getModel().uri)])
+		return TPromise.join<any>([this.preferencesService.createDefaultPreferencesEditorModel(this.preferencesService.defaultSettingsResource), this.preferencesService.resolvePreferencesEditorModel(this.editor.getModel().uri)])
 			.then(([defaultSettingsModel, settingsModel]) => {
 				if (settingsModel instanceof SettingsEditorModel) {
 					if (ConfigurationTarget.USER === settingsModel.configurationTarget) {

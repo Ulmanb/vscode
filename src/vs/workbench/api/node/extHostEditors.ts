@@ -11,7 +11,8 @@ import { IdGenerator } from 'vs/base/common/idGenerator';
 import Event, { Emitter } from 'vs/base/common/event';
 import { TPromise } from 'vs/base/common/winjs.base';
 import { IThreadService } from 'vs/workbench/services/thread/common/threadService';
-import { ExtHostDocuments, ExtHostDocumentData } from 'vs/workbench/api/node/extHostDocuments';
+import { ExtHostDocuments } from 'vs/workbench/api/node/extHostDocuments';
+import { ExtHostDocumentData } from 'vs/workbench/api/node/extHostDocumentData';
 import { Selection, Range, Position, EndOfLine, TextEditorRevealType, TextEditorSelectionChangeKind, TextEditorLineNumbersStyle, SnippetString } from './extHostTypes';
 import { ISingleEditOperation, TextEditorCursorStyle, IRange } from 'vs/editor/common/editorCommon';
 import { IResolvedTextEditorConfiguration, ISelectionChangeEvent, ITextEditorConfigurationUpdate } from 'vs/workbench/api/node/mainThreadEditorsTracker';
@@ -630,7 +631,7 @@ class ExtHostTextEditor implements vscode.TextEditor {
 			ranges = this._selections.map(TypeConverters.fromRange);
 
 		} else if (where instanceof Position) {
-			const {lineNumber, column} = TypeConverters.fromPosition(where);
+			const { lineNumber, column } = TypeConverters.fromPosition(where);
 			ranges = [{ startLineNumber: lineNumber, startColumn: column, endLineNumber: lineNumber, endColumn: column }];
 
 		} else if (where instanceof Range) {
@@ -641,7 +642,7 @@ class ExtHostTextEditor implements vscode.TextEditor {
 				if (posOrRange instanceof Range) {
 					ranges.push(TypeConverters.fromRange(posOrRange));
 				} else {
-					const {lineNumber, column} = TypeConverters.fromPosition(posOrRange);
+					const { lineNumber, column } = TypeConverters.fromPosition(posOrRange);
 					ranges.push({ startLineNumber: lineNumber, startColumn: column, endLineNumber: lineNumber, endColumn: column });
 				}
 			}

@@ -109,32 +109,32 @@ suite('editor tests', () => {
 		});
 	});
 
-	test('issue #20867: vscode.window.visibleTextEditors returns closed document', () => {
+	// test('issue #20867: vscode.window.visibleTextEditors returns closed document', () => {
 
-		return withRandomFileEditor('Hello world!', editor => {
+	// 	return withRandomFileEditor('Hello world!', editor => {
 
-			assert.ok(editor === window.activeTextEditor);
+	// 		assert.ok(editor === window.activeTextEditor);
 
-			const p = new Promise((resolve, reject) => {
-				const sub = workspace.onDidCloseTextDocument((event) => {
-					sub.dispose();
-					try {
-						window.visibleTextEditors.forEach((editor) => {
-							assert.ok(editor.document, 'editor WITHOUT document');
-							assert.ok(editor.document.fileName !== event.fileName, 'editor with CLOSED document');
-						});
-					} catch (e) {
-						reject(e);
-					}
-				});
-			});
+	// 		const p = new Promise((resolve, reject) => {
+	// 			const sub = workspace.onDidCloseTextDocument((event) => {
+	// 				sub.dispose();
+	// 				try {
+	// 					window.visibleTextEditors.forEach((editor) => {
+	// 						assert.ok(editor.document, 'editor WITHOUT document');
+	// 						assert.ok(editor.document.fileName !== event.fileName, 'editor with CLOSED document');
+	// 					});
+	// 				} catch (e) {
+	// 					reject(e);
+	// 				}
+	// 			});
+	// 		});
 
-			return Promise.all([
-				commands.executeCommand('workbench.action.closeAllEditors'),
-				p
-			]).then(() => undefined);
-		});
-	});
+	// 		return Promise.all([
+	// 			commands.executeCommand('workbench.action.closeAllEditors'),
+	// 			p
+	// 		]).then(() => undefined);
+	// 	});
+	// });
 
 	function executeReplace(editor: TextEditor, range: Range, text: string, undoStopBefore: boolean, undoStopAfter: boolean): Thenable<boolean> {
 		return editor.edit((builder) => {

@@ -71,7 +71,7 @@ export class ExtHostContribution implements IWorkbenchContribution {
 		col.define(MainContext.MainThreadConfiguration).set(create(MainThreadConfiguration));
 		col.define(MainContext.MainThreadDiagnostics).set(create(MainThreadDiagnostics));
 		col.define(MainContext.MainThreadDocuments).set(this.instantiationService.createInstance(MainThreadDocuments, documentsAndEditors));
-		col.define(MainContext.MainThreadEditors).set(create(MainThreadEditors));
+		col.define(MainContext.MainThreadEditors).set(this.instantiationService.createInstance(MainThreadEditors, documentsAndEditors));
 		col.define(MainContext.MainThreadErrors).set(create(MainThreadErrors));
 		col.define(MainContext.MainThreadExplorers).set(create(MainThreadTreeExplorers));
 		col.define(MainContext.MainThreadLanguageFeatures).set(create(MainThreadLanguageFeatures));

@@ -99,10 +99,14 @@ export class ExtHostDocumentsAndEditors extends ExtHostDocumentsAndEditorsShape 
 		}
 
 		// now that the internal state is complete, fire events
-		this._onDidRemoveDocuments.fire(removedDocuments);
-		this._onDidAddDocuments.fire(addedDocuments);
+		if (delta.removedDocuments) {
+			this._onDidRemoveDocuments.fire(removedDocuments);
+		}
+		if (delta.addedDocuments) {
+			this._onDidAddDocuments.fire(addedDocuments);
+		}
 
-		if (removedEditors || delta.addedEditors) {
+		if (delta.removedEditors || delta.addedEditors) {
 			this._onDidChangeVisibleTextEditors.fire(this.allEditors());
 		}
 		if (delta.newActiveEditor) {
@@ -118,14 +122,14 @@ export class ExtHostDocumentsAndEditors extends ExtHostDocumentsAndEditorsShape 
 		return this._documents.get(strUrl);
 	}
 
-	hasDocument(strUrl: string): boolean {
-		return this._documents.has(strUrl);
-	}
-
 	allDocuments(): ExtHostDocumentData[] {
 		const result: ExtHostDocumentData[] = [];
 		this._documents.forEach(data => result.push(data));
 		return result;
+	}
+
+	getEditor(id: string): ExtHostTextEditor {
+		return this._editors.get(id);
 	}
 
 	activeEditor(): ExtHostTextEditor | undefined {

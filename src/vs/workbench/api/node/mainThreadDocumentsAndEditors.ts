@@ -16,7 +16,7 @@ import { MainThreadTextEditor } from 'vs/workbench/api/node/mainThreadEditorsTra
 import { IThreadService } from 'vs/workbench/services/thread/common/threadService';
 import { ITextFileService } from 'vs/workbench/services/textfile/common/textfiles';
 import { IWorkbenchEditorService } from 'vs/workbench/services/editor/common/editorService';
-import { Position as EditorPosition } from 'vs/platform/editor/common/editor';
+import { Position as EditorPosition, IEditor } from 'vs/platform/editor/common/editor';
 
 namespace cmp {
 	export function compareModels(a: IModel, b: IModel): number {
@@ -119,6 +119,7 @@ class MainThreadDocumentAndEditorStateComputer {
 		this._modelService.onModelRemoved(this._updateState, this, this._toDispose);
 		this._codeEditorService.onCodeEditorAdd(this._onDidAddEditor, this, this._toDispose);
 		this._codeEditorService.onCodeEditorRemove(this._onDidRemoveEditor, this, this._toDispose);
+		// this._updateState();
 	}
 
 	dispose(): void {
@@ -332,5 +333,18 @@ export class MainThreadDocumentsAndEditors {
 			}
 		}
 		return undefined;
+	}
+
+	findTextEditorIdFor(editor: IEditor): string {
+		for (let id in this._editors) {
+			if (this._editors[id].matches(editor)) {
+				return id;
+			}
+		}
+		return undefined;
+	}
+
+	getEditor(id: string): MainThreadTextEditor {
+		return this._editors[id];
 	}
 }

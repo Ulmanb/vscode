@@ -310,12 +310,9 @@ export interface ITextEditorPositionData {
 	[id: string]: EditorPosition;
 }
 export abstract class ExtHostEditorsShape {
-	$acceptTextEditorAdd(data: ITextEditorAddData): void { throw ni(); }
 	$acceptOptionsChanged(id: string, opts: IResolvedTextEditorConfiguration): void { throw ni(); }
 	$acceptSelectionsChanged(id: string, event: ISelectionChangeEvent): void { throw ni(); }
-	$acceptActiveEditorAndVisibleEditors(id: string, visibleIds: string[]): void { throw ni(); }
 	$acceptEditorPositionData(data: ITextEditorPositionData): void { throw ni(); }
-	$acceptTextEditorRemove(id: string): void { throw ni(); }
 }
 
 export interface IDocumentsAndEditorsDelta {

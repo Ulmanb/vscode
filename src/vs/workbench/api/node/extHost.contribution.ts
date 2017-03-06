@@ -63,15 +63,14 @@ export class ExtHostContribution implements IWorkbenchContribution {
 			return this.instantiationService.createInstance(ctor);
 		};
 
-		this.instantiationService.createInstance(MainThreadDocumentsAndEditors);
-
+		const documentsAndEditors = this.instantiationService.createInstance(MainThreadDocumentsAndEditors);
 
 		// Addressable instances
 		const col = new InstanceCollection();
 		col.define(MainContext.MainThreadCommands).set(create(MainThreadCommands));
 		col.define(MainContext.MainThreadConfiguration).set(create(MainThreadConfiguration));
 		col.define(MainContext.MainThreadDiagnostics).set(create(MainThreadDiagnostics));
-		col.define(MainContext.MainThreadDocuments).set(create(MainThreadDocuments));
+		col.define(MainContext.MainThreadDocuments).set(this.instantiationService.createInstance(MainThreadDocuments, documentsAndEditors));
 		col.define(MainContext.MainThreadEditors).set(create(MainThreadEditors));
 		col.define(MainContext.MainThreadErrors).set(create(MainThreadErrors));
 		col.define(MainContext.MainThreadExplorers).set(create(MainThreadTreeExplorers));

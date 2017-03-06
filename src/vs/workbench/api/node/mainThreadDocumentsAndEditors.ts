@@ -298,10 +298,10 @@ export class MainThreadDocumentsAndEditors {
 			// first update ext host
 			this._proxy.$acceptDocumentsAndEditorsDelta(extHostDelta);
 			// second update dependent state listener
-			this._onTextEditorRemove.fire(removedEditors);
-			this._onTextEditorAdd.fire(addedEditors);
 			this._onDocumentRemove.fire(removedDocuments);
 			this._onDocumentAdd.fire(delta.addedDocuments);
+			this._onTextEditorRemove.fire(removedEditors);
+			this._onTextEditorAdd.fire(addedEditors);
 		}
 	}
 

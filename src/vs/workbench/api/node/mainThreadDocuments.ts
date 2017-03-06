@@ -20,8 +20,10 @@ import { IUntitledEditorService } from 'vs/workbench/services/untitled/common/un
 import { ExtHostContext, MainThreadDocumentsShape, ExtHostDocumentsShape } from './extHost.protocol';
 import { ITextModelResolverService } from 'vs/editor/common/services/resolverService';
 import { ICodeEditorService } from 'vs/editor/common/services/codeEditorService';
+import { MainThreadDocumentsAndEditors } from './mainThreadDocumentsAndEditors';
 
 export class MainThreadDocuments extends MainThreadDocumentsShape {
+
 	private _modelService: IModelService;
 	private _modeService: IModeService;
 	private _textModelResolverService: ITextModelResolverService;
@@ -36,6 +38,7 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 	private _resourceContentProvider: { [handle: number]: IDisposable };
 
 	constructor(
+		documentsAndEditors: MainThreadDocumentsAndEditors,
 		@IThreadService threadService: IThreadService,
 		@IModelService modelService: IModelService,
 		@IModeService modeService: IModeService,
@@ -57,8 +60,8 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		this._modelIsSynced = {};
 
 		this._toDispose = [];
-		modelService.onModelAdded(this._onModelAdded, this, this._toDispose);
-		modelService.onModelRemoved(this._onModelRemoved, this, this._toDispose);
+		this._toDispose.push(documentsAndEditors.onDocumentAdd(models => models.forEach(this._onModelAdded, this)));
+		this._toDispose.push(documentsAndEditors.onDocumentRemove(urls => urls.forEach(this._onModelRemoved, this)));
 		modelService.onModelModeChanged(this._onModelModeChanged, this, this._toDispose);
 
 		this._toDispose.push(textFileService.models.onModelSaved(e => {
@@ -103,17 +106,10 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		let modelUrl = model.uri;
 		this._modelIsSynced[modelUrl.toString()] = true;
 		this._modelToDisposeMap[modelUrl.toString()] = model.addBulkListener((events) => this._onModelEvents(modelUrl, events));
-		this._proxy.$acceptModelAdd({
-			url: model.uri,
-			versionId: model.getVersionId(),
-			value: model.toRawText(),
-			modeId: model.getLanguageIdentifier().language,
-			isDirty: this._textFileService.isDirty(modelUrl)
-		});
 	}
 
 	private _onModelModeChanged(event: { model: editorCommon.IModel; oldModeId: string; }): void {
-		let {model, oldModeId} = event;
+		let { model, oldModeId } = event;
 		let modelUrl = model.uri;
 		if (!this._modelIsSynced[modelUrl.toString()]) {
 			return;
@@ -121,15 +117,14 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		this._proxy.$acceptModelModeChanged(model.uri.toString(), oldModeId, model.getLanguageIdentifier().language);
 	}
 
-	private _onModelRemoved(model: editorCommon.IModel): void {
-		let modelUrl = model.uri;
-		if (!this._modelIsSynced[modelUrl.toString()]) {
+	private _onModelRemoved(modelUrl: string): void {
+
+		if (!this._modelIsSynced[modelUrl]) {
 			return;
 		}
-		delete this._modelIsSynced[modelUrl.toString()];
-		this._modelToDisposeMap[modelUrl.toString()].dispose();
-		delete this._modelToDisposeMap[modelUrl.toString()];
-		this._proxy.$acceptModelRemoved(modelUrl.toString());
+		delete this._modelIsSynced[modelUrl];
+		this._modelToDisposeMap[modelUrl].dispose();
+		delete this._modelToDisposeMap[modelUrl];
 	}
 
 	private _onModelEvents(modelUrl: URI, events: EmitterEvent[]): void {
@@ -247,7 +242,7 @@ export class MainThreadDocuments extends MainThreadDocumentsShape {
 		}
 		// fetch the raw text from the ext host but
 		// reuse the current options
-		const {options} = RawText.fromStringWithModelOptions('', model);
+		const { options } = RawText.fromStringWithModelOptions('', model);
 		const raw = <editorCommon.IRawText>{
 			options,
 			lines: value.lines,

@@ -98,8 +98,9 @@ export function createApiFactory(initData: IInitData, threadService: IThreadServ
 	// Addressable instances
 	const col = new InstanceCollection();
 	const extHostHeapService = col.define(ExtHostContext.ExtHostHeapService).set<ExtHostHeapService>(new ExtHostHeapService());
-	col.define(ExtHostContext.ExtHostDocumentsAndEditors).set<ExtHostDocumentsAndEditors>(new ExtHostDocumentsAndEditors());
-	const extHostDocuments = col.define(ExtHostContext.ExtHostDocuments).set<ExtHostDocuments>(new ExtHostDocuments(threadService));
+	const extHostDocumentsAndEditors = col.define(ExtHostContext.ExtHostDocumentsAndEditors).set<ExtHostDocumentsAndEditors>(new ExtHostDocumentsAndEditors(threadService));
+
+	const extHostDocuments = col.define(ExtHostContext.ExtHostDocuments).set<ExtHostDocuments>(new ExtHostDocuments(threadService, extHostDocumentsAndEditors));
 	const extHostDocumentSaveParticipant = col.define(ExtHostContext.ExtHostDocumentSaveParticipant).set<ExtHostDocumentSaveParticipant>(new ExtHostDocumentSaveParticipant(extHostDocuments, threadService.get(MainContext.MainThreadWorkspace)));
 	const extHostEditors = col.define(ExtHostContext.ExtHostEditors).set<ExtHostEditors>(new ExtHostEditors(threadService, extHostDocuments));
 	const extHostCommands = col.define(ExtHostContext.ExtHostCommands).set<ExtHostCommands>(new ExtHostCommands(threadService, extHostEditors, extHostHeapService));

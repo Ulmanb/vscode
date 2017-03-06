@@ -24,6 +24,7 @@ import { ExtHostCommands } from 'vs/workbench/api/node/extHostCommands';
 import { MainThreadCommands } from 'vs/workbench/api/node/mainThreadCommands';
 import { IHeapService } from 'vs/workbench/api/node/mainThreadHeapService';
 import { ExtHostDocuments } from 'vs/workbench/api/node/extHostDocuments';
+import { ExtHostDocumentsAndEditors } from 'vs/workbench/api/node/extHostDocumentsAndEditors';
 import { getDocumentSymbols } from 'vs/editor/contrib/quickOpen/common/quickOpen';
 import { DocumentSymbolProviderRegistry, DocumentHighlightKind } from 'vs/editor/common/modes';
 import { getCodeLensData } from 'vs/editor/contrib/codelens/common/codelens';
@@ -80,28 +81,31 @@ suite('ExtHostLanguageFeatures', function () {
 		originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(() => { });
 
-		const extHostDocuments = new ExtHostDocuments(threadService);
-		threadService.set(ExtHostContext.ExtHostDocuments, extHostDocuments);
-		extHostDocuments.$acceptModelAdd({
-			isDirty: false,
-			versionId: model.getVersionId(),
-			modeId: model.getLanguageIdentifier().language,
-			url: model.uri,
-			value: {
-				EOL: model.getEOL(),
-				lines: model.getValue().split(model.getEOL()),
-				BOM: '',
-				length: -1,
-				containsRTL: false,
-				isBasicASCII: false,
-				options: {
-					tabSize: 4,
-					insertSpaces: true,
-					trimAutoWhitespace: true,
-					defaultEOL: EditorCommon.DefaultEndOfLine.LF
-				}
-			},
+		const extHostDocumentsAndEditors = new ExtHostDocumentsAndEditors(threadService);
+		extHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta({
+			addedDocuments: [{
+				isDirty: false,
+				versionId: model.getVersionId(),
+				modeId: model.getLanguageIdentifier().language,
+				url: model.uri,
+				value: {
+					EOL: model.getEOL(),
+					lines: model.getValue().split(model.getEOL()),
+					BOM: '',
+					length: -1,
+					containsRTL: false,
+					isBasicASCII: false,
+					options: {
+						tabSize: 4,
+						insertSpaces: true,
+						trimAutoWhitespace: true,
+						defaultEOL: EditorCommon.DefaultEndOfLine.LF
+					}
+				},
+			}]
 		});
+		const extHostDocuments = new ExtHostDocuments(threadService, extHostDocumentsAndEditors);
+		threadService.set(ExtHostContext.ExtHostDocuments, extHostDocuments);
 
 		const heapService = new ExtHostHeapService();
 

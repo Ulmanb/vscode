@@ -288,12 +288,10 @@ export interface IModelAddedData {
 }
 export abstract class ExtHostDocumentsShape {
 	$provideTextDocumentContent(handle: number, uri: URI): TPromise<string> { throw ni(); }
-	$acceptModelAdd(initData: IModelAddedData): void { throw ni(); }
 	$acceptModelModeChanged(strURL: string, oldModeId: string, newModeId: string): void { throw ni(); }
 	$acceptModelSaved(strURL: string): void { throw ni(); }
 	$acceptModelDirty(strURL: string): void { throw ni(); }
 	$acceptModelReverted(strURL: string): void { throw ni(); }
-	$acceptModelRemoved(strURL: string): void { throw ni(); }
 	$acceptModelChanged(strURL: string, events: editorCommon.IModelContentChangedEvent2[], isDirty: boolean): void { throw ni(); }
 }
 
